@@ -135,9 +135,9 @@ function test_reClaimIssue() public {
     distributor.claim(questID, period, index, userA, 500 ether, userA_PROOF_2); // Claim with 0 amount
 
     // Now, attempt to claim the actual amount
-    // vm.prank(userA);
-    // vm.expectRevert("AlreadyClaimed"); // Expecting this revert based on the suspected issue
-    // distributor.claim(questID, period, 0, userA, claimableAmount, userA_PROOF_2); // Attempt to claim the correct amount
+    vm.prank(userA);
+    vm.expectRevert("AlreadyClaimed"); // Expecting this revert based on the suspected issue
+    distributor.claim(questID, period, index, userA, 500 ether, userA_PROOF_2); // Attempt to claim the correct amount
 }
 
 
