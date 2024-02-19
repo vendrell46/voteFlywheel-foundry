@@ -45,6 +45,7 @@ contract MultiMerkleDistributorV2Test is Test {
 
         // Deploy the MultiMerkleDistributorV2 contract
         distributor = new MultiMerkleDistributorV2(mockQuestBoard);
+        token.mint(address(distributor), 600 ether);
 
         // Deploy the MockCreator contract
         lootCreator = new MockCreator(admin);
