@@ -1,0 +1,6 @@
+Reverted? true 
+ Txn:
+[Sender] 0x35c9dfd76bf02107ff4f7128Bd69716612d31dDb
+   ├─[1] 0xc015b56AeB5bbe50D9fcE24c4b46D92f6fc03d6a.setDecimals(66)
+   ├─[1] 0x1b6c0022B2c6228f3A3C472b9eD8Df416AD5855b.renounceOwnership()
+   │  └─ ← 0x118cdaa700000000000000000000000035c9dfd76bf02107ff4f7128bd69716612d31ddb
