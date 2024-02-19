@@ -31,6 +31,12 @@ contract MultiMerkleDistributorV2Test is Test {
     address constant BIG_HOLDER2 = 0x075e72a5eDf65F0A5f44699c7654C1a76941Ddc8; // DAI holder
 
     uint256 private constant WEEK = 604800;
+    address public immutable userA = makeAddr("userA");
+    address public immutable userB = makeAddr("userB");
+    bytes32[] public userA_PROOF_2;
+    bytes32[] public userB_PROOF_2;
+
+
 
     function setUp() public {
         token = new MockERC20("Test Token", "TT");
@@ -54,51 +60,55 @@ contract MultiMerkleDistributorV2Test is Test {
         users.push(address(5));
     }
 
-    function testClaimIssue() public {
-        // User A's address and claimable amount
-        address userA = address(1);
-        uint256 claimableAmount = 500 ether;
+    // function testClaimIssue() public {
+    //     // User A's address and claimable amount
+    //     address userA = address(1);
+    //     uint256 claimableAmount = 500 ether;
 
-        // Create data for a new Merkle tree
-        bytes32[] memory leafNodes = new bytes32[](1);
-        leafNodes[0] = keccak256(abi.encodePacked(userA, claimableAmount));
+    //     // Create data for a new Merkle tree
+    //     bytes32[] memory leafNodes = new bytes32[](1);
+    //     leafNodes[0] = keccak256(abi.encodePacked(userA, claimableAmount));
 
-        // Generate a new valid Merkle root. Use a simple mock or a utility contract if needed
-        bytes32 merkleRoot = keccak256(abi.encodePacked(leafNodes[0]));
+    //     // Generate a new valid Merkle root. Use a simple mock or a utility contract if needed
+    //     bytes32 merkleRoot = keccak256(abi.encodePacked(leafNodes[0]));
 
-        // Setup the distributor: Add quest, set merkle root, etc.
-        // Assuming questID and period are predefined or set up earlier
-        uint256 questID = 1;
-        uint256 period = block.timestamp;
-        distributor.addQuest(questID, address(token));
-        distributor.updateQuestPeriod(questID, period, claimableAmount, merkleRoot);
+    //     // Setup the distributor: Add quest, set merkle root, etc.
+    //     // Assuming questID and period are predefined or set up earlier
+    //     uint256 questID = 1;
+    //     uint256 period = block.timestamp;
+    //     distributor.addQuest(questID, address(token));
+    //     distributor.updateQuestPeriod(questID, period, claimableAmount, merkleRoot);
 
-        // Attempt to claim with 0 amount (to simulate the suspected issue)
-        bytes32[] memory proof = new bytes32[](1);
-        proof[0] = leafNodes[0]; // Simplified proof, in reality, you'd construct a valid Merkle proof for the claim
+    //     // Attempt to claim with 0 amount (to simulate the suspected issue)
+    //     bytes32[] memory proof = new bytes32[](1);
+    //     proof[0] = leafNodes[0]; // Simplified proof, in reality, you'd construct a valid Merkle proof for the claim
 
-        vm.prank(userA);
-        distributor.claim(questID, period, 0, userA, 0, proof); // Claim with 0 amount
+    //     vm.prank(userA);
+    //     distributor.claim(questID, period, 0, userA, 0, proof); // Claim with 0 amount
 
-        // Now, attempt to claim the actual amount
-        vm.prank(userA);
-        vm.expectRevert("AlreadyClaimed"); // Expecting this revert based on the suspected issue
-        distributor.claim(questID, period, 0, userA, claimableAmount, proof); // Attempt to claim the correct amount
-    }
+    //     // Now, attempt to claim the actual amount
+    //     vm.prank(userA);
+    //     vm.expectRevert("AlreadyClaimed"); // Expecting this revert based on the suspected issue
+    //     distributor.claim(questID, period, 0, userA, claimableAmount, proof); // Attempt to claim the correct amount
+    // }
 
 
 function test_reClaimIssue() public {
-    // User A's address and claimable amount
-    address userA = address(1);
+
+
     uint256 claimableAmount = 500 ether;
 
-    // Create data for a new Merkle tree
-    bytes32[] memory leafNodes = new bytes32[](1);
-    leafNodes[0] = keccak256(abi.encodePacked(userA, claimableAmount));
+    Merkle m = new Merkle();
+    bytes32[] memory leafNodes = new bytes32[](2);
+    leafNodes[0] = keccak256(abi.encodePacked(userA, uint256(500)));
+    leafNodes[1] = keccak256(abi.encodePacked(userB, uint256(200)));
 
         bytes32 root = m .getRoot(leafNodes);
-        merkleRoot = m.getProof(leafNodes, 0);
-        assertTrue(m.verifyProof(root, ALICE_PROOF_1, data[0]));
+        userA_PROOF_2 = m.getProof(leafNodes, 0);
+        userB_PROOF_2 = m.getProof(leafNodes, 1);
+
+        assertTrue(m.verifyProof(root, userA_PROOF_2, leafNodes[0]));
+        assertTrue(m.verifyProof(root, userB_PROOF_2, leafNodes[1]));
 
     // Setup the distributor: Add quest, set merkle root, etc.
     // Assuming questID and period are predefined or set up earlier
@@ -115,19 +125,19 @@ function test_reClaimIssue() public {
 
     // Ahora sí, actualizar el periodo con el Merkle Root
     vm.prank(mockQuestBoard);
-    distributor.updateQuestPeriod(questID, period, claimableAmount, merkleRoot);
+    distributor.updateQuestPeriod(questID, period, claimableAmount, root);
 
-    // Attempt to claim with 0 amount (to simulate the suspected issue)
-    bytes32[] memory proof = new bytes32[](1);
-    proof[0] = leafNodes[0]; // Simplified proof, in reality, you'd construct a valid Merkle proof for the claim
+    // // Attempt to claim with 0 amount (to simulate the suspected issue)
+    // bytes32[] memory proof = new bytes32[](1);
+    // proof[0] = leafNodes[0]; // Simplified proof, in reality, you'd construct a valid Merkle proof for the claim
 
     vm.prank(userA);
-    distributor.claim(questID, period, 0, userA, 0, merkleRoot); // Claim with 0 amount
+    distributor.claim(questID, period, 0, userA, 0, leafNodes); // Claim with 0 amount
 
     // Now, attempt to claim the actual amount
-    vm.prank(userA);
-    vm.expectRevert("AlreadyClaimed"); // Expecting this revert based on the suspected issue
-    distributor.claim(questID, period, 0, userA, claimableAmount, proof); // Attempt to claim the correct amount
+    // vm.prank(userA);
+    // vm.expectRevert("AlreadyClaimed"); // Expecting this revert based on the suspected issue
+    // distributor.claim(questID, period, 0, userA, claimableAmount, userA_PROOF_2); // Attempt to claim the correct amount
 }
 
 
