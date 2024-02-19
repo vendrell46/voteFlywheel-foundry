@@ -95,25 +95,28 @@ contract MultiMerkleDistributorV2Test is Test {
 
 function test_reClaimIssue() public {
 
-
     uint256 claimableAmount = 500 ether;
+    uint256 questID = 1;
+    uint256 period = (block.timestamp / WEEK) * WEEK + WEEK;
+    uint256 index = 0; // Asegura que el periodo comience al inicio de la próxima semana
+
+    uint256 claimableAmount2 = 100 ether;
+    uint256 questID2 = 2;
+    uint256 period2 = (block.timestamp / WEEK) * WEEK + WEEK;
+    uint256 index2 = 1; // Asegura que el periodo comience al inicio de la próxima semana
 
     Merkle m = new Merkle();
     bytes32[] memory leafNodes = new bytes32[](2);
-    leafNodes[0] = keccak256(abi.encodePacked(userA, uint256(500)));
-    leafNodes[1] = keccak256(abi.encodePacked(userB, uint256(200)));
+    leafNodes[0] = keccak256(abi.encodePacked(questID,period, index, userA, claimableAmount));
+    leafNodes[1] = keccak256(abi.encodePacked(questID2,period2,index2, userB, claimableAmount2));
 
-        bytes32 root = m .getRoot(leafNodes);
-        userA_PROOF_2 = m.getProof(leafNodes, 0);
-        userB_PROOF_2 = m.getProof(leafNodes, 1);
+    bytes32 root = m .getRoot(leafNodes);
+    userA_PROOF_2 = m.getProof(leafNodes, 0);
+    userB_PROOF_2 = m.getProof(leafNodes, 1);
 
-        assertTrue(m.verifyProof(root, userA_PROOF_2, leafNodes[0]));
-        assertTrue(m.verifyProof(root, userB_PROOF_2, leafNodes[1]));
+    assertTrue(m.verifyProof(root, userA_PROOF_2, leafNodes[0]));
+    assertTrue(m.verifyProof(root, userB_PROOF_2, leafNodes[1]));
 
-    // Setup the distributor: Add quest, set merkle root, etc.
-    // Assuming questID and period are predefined or set up earlier
-    uint256 questID = 1;
-    uint256 period = (block.timestamp / WEEK) * WEEK + WEEK; // Asegura que el periodo comience al inicio de la próxima semana
 
     // Agregar el quest con un token de recompensa (podrías usar la dirección de un MockERC20 aquí)
     vm.prank(mockQuestBoard);
@@ -127,12 +130,8 @@ function test_reClaimIssue() public {
     vm.prank(mockQuestBoard);
     distributor.updateQuestPeriod(questID, period, claimableAmount, root);
 
-    // // Attempt to claim with 0 amount (to simulate the suspected issue)
-    // bytes32[] memory proof = new bytes32[](1);
-    // proof[0] = leafNodes[0]; // Simplified proof, in reality, you'd construct a valid Merkle proof for the claim
-
-    vm.prank(userA);
-    distributor.claim(questID, period, 0, userA, 0, leafNodes); // Claim with 0 amount
+    vm.prank(mockQuestBoard);
+    distributor.claim(questID, period, index, userA, 500 ether, userA_PROOF_2); // Claim with 0 amount
 
     // Now, attempt to claim the actual amount
     // vm.prank(userA);
