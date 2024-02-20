@@ -118,7 +118,6 @@ function test_reClaimIssue() public {
     assertTrue(m.verifyProof(root, userA_PROOF_2, leafNodes[0]));
     assertTrue(m.verifyProof(root, userB_PROOF_2, leafNodes[1]));
 
-
     // Agregar el quest con un token de recompensa (podrías usar la dirección de un MockERC20 aquí)
     vm.prank(mockQuestBoard);
     distributor.addQuest(questID, address(token)); // Asegúrate de que 'token' sea el token de recompensa correcto
@@ -131,8 +130,8 @@ function test_reClaimIssue() public {
     vm.prank(mockQuestBoard);
     distributor.updateQuestPeriod(questID, period, claimableAmount, root);
 
-    vm.prank(mockQuestBoard);
-    distributor.claim(questID, period, index, userA, 500 ether, userA_PROOF_2); // Claim with 0 amount
+    vm.prank(userA);
+    distributor.claim(questID, period, index, userA, 0 ether, userA_PROOF_2); // Claim with 0 amount
 
     // Now, attempt to claim the actual amount
     vm.prank(userA);

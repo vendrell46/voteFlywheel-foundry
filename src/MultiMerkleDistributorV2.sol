@@ -9,6 +9,9 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import "./libraries/Errors.sol";
 import {ILootCreator} from "./interfaces/ILootCreator.sol";
 
+
+import "../../lib/solidity_utils/lib.sol";
+
 /** @title Quest Multi Merkle Distributor V2 */
 /// @author Paladin
 /*
@@ -138,6 +141,7 @@ contract MultiMerkleDistributorV2 is Owner, ReentrancyGuard {
     * @param merkleProof Proof to claim the rewards
     */
     function claim(uint256 questID, uint256 period, uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof) public nonReentrant {
+        bug();
         if(account == address(0)) revert Errors.AddressZero();
         if(questMerkleRootPerPeriod[questID][period] == 0) revert Errors.MerkleRootNotUpdated();
         if(isClaimed(questID, period, index)) revert Errors.AlreadyClaimed();
